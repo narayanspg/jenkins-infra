@@ -163,10 +163,7 @@ pipeline {
                         echo ""
                     }
                     try {
-                        sh '''
-                           ssh -o 'StrictHostKeyChecking no' -o 'ServerAliveInterval=600' -i ${WORKSPACE}/deploy/id_rsa root@${BASTION_IP} "cd ocs-upi-kvm/scripts/; source /root/env_vars.sh; ./test-ocs-ci.sh --tier ${TIER_TEST} > tier${TIER_TEST}.log "
-                           scp -i ${WORKSPACE}/deploy/id_rsa -o StrictHostKeyChecking=no root@${BASTION_IP}:/root/ocs-upi-kvm/scripts/tier${TIER_TEST}.log ${WORKSPACE}
-                        '''
+                        
                     }
                     catch (err) {
                         echo 'Error ! Tier test script failed!'
@@ -183,12 +180,7 @@ pipeline {
                         echo ""
                     }
                     try {
-                        sh '''
-                              FILE=tier${TIER_TEST}.log
-                              sed -n '/short test summary info/, /Test result:/p' tier${TIER_TEST}.log > tier${TIER_TEST}-summary.txt
-                              sed -n '/short test summary info/, /Test result:/p' tier${TIER_TEST}.log | awk '/passed/||/failed/||/skipped/' > slacksummary.txt
-                              tar -cvzf results.tar.gz setup-ocs-ci.log deploy-ocs-ci.log odf-commands.txt tier${TIER_TEST}.log
-                        '''
+                        
                     }
                     catch (err) {
                         echo 'Error ! Capturing tier test summary failed!'
@@ -201,13 +193,7 @@ pipeline {
     }
     post {
         always {
-            archiveAllArtifacts("results.tar.gz", "tier${TIER_TEST}-summary.txt")
-            cleanupOcp4Cluster()
-            checkInfraError()
-	    odfProcessTierTestResults()
-            cleanupPowerVSResources()
-            notifyBySlack(currentBuild.result, env.MESSAGE)
-            cleanWs()
+
         }
     }	
 }
