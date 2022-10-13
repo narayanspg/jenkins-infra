@@ -1,4 +1,4 @@
-@Library('jenkins-upstream-library') _
+@Library('odf-library') _
 
 pipeline {
     agent {
