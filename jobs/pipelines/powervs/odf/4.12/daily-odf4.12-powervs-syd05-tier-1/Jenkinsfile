@@ -20,17 +20,20 @@ pipeline {
         //Env constants
         TERRAFORM_VER = "1.2.0"
 
-        IBM_CLOUD_REGION = "syd"
-        IBM_CLOUD_ZONE = "syd05"
-        SERVICE_INSTANCE_ID = "22bd163a-c87c-4cea-90d2-58f7794caa43"
+    //    IBM_CLOUD_REGION = "syd"
+    //    IBM_CLOUD_ZONE = "syd05"
+     //   SERVICE_INSTANCE_ID = "22bd163a-c87c-4cea-90d2-58f7794caa43"
+	IBM_CLOUD_REGION = "lon"
+        IBM_CLOUD_ZONE = "lon06"
+        SERVICE_INSTANCE_ID = "fac4755e-8aff-45f5-8d5c-1d3b58b7a229"	  
 
         BASTION_IMAGE = "rhel-86"
         RHCOS_IMAGE = "rhcos-412"
-        BASTION_IMAGE_FILE = "latest-${BASTION_IMAGE}-rdr-ocp-storage-sydney05-odf.txt"
-	    RHCOS_IMAGE_FILE = "latest-${RHCOS_IMAGE}-rdr-ocp-storage-sydney05-odf.txt"
+        BASTION_IMAGE_FILE = "latest-${BASTION_IMAGE}-rdr-svenkat-ocp-storage-lon06-odf-411.txt"
+	RHCOS_IMAGE_FILE = "latest-${RHCOS_IMAGE}-rdr-svenkat-ocp-storage-lon06-odf-411.txt"
         OCP_RELEASE = "4.12"
 
-        TARGET = "deploy-openshift4-powervs-script"
+        TARGET = "deploy-openshift4-powervs-script-odf"
         TEMPLATE_FILE = ".${TARGET}.tfvars.template"
         POWERVS = true
         SCRIPT_DEPLOYMENT = true
@@ -40,23 +43,30 @@ pipeline {
 	PLATFORM = "powervs"
 	ODF_VERSION = "4.12"
 	TIER_TEST = "1"
-        ENABLE_FIPS = false
-        ENABLE_VAULT = false
-        CONFIG_TYPE = "odf"
 	 }
     
     stages {
+	stage('Clone ansible extra') {
+            steps {
+                cloneRepo("git@github.ibm.com:redstack-power/ocp4_ansible_extras.git", "ansible_extra")
+            }
+        }
+        stage('Clone ocs-upi-kvm') {
+            steps {
+                cloneRepo("https://github.com/ocp-power-automation/ocs-upi-kvm.git", "ocs-upi-kvm")
+            }
+        }
         stage('Setup Common Environment Variables') {
             steps {
-                setupCommonEnvironmentVariables()
-                setupClusterConfig("${CONFIG_TYPE}")
+                odfSetupCommonEnvironmentVariables()
+                odfSetupClusterConfig()
             }
         }
         stage('pull artifact') {
             steps {
                 getArtifacts("mirror-openshift-release", "latest-${OCP_RELEASE}-build.txt" )
-                getArtifacts("powervs/poll-powervs-images", "${BASTION_IMAGE_FILE}")
-                getArtifacts("powervs/poll-powervs-images", "${RHCOS_IMAGE_FILE}" )		    
+                getArtifacts("powervs/odf/poll-powervs-images", "${BASTION_IMAGE_FILE}")
+                getArtifacts("powervs/odf/poll-powervs-images", "${RHCOS_IMAGE_FILE}" )	    
             }
         }
         //Checkout the installer git repo
@@ -68,7 +78,7 @@ pipeline {
                     }
                     try
                     {
-                        pullSecret()
+                        odfPullSecret()
                         env.OPENSHIFT_IMAGE = ""
                         env.OCP_RELEASE_TAG = ""
                         if (fileExists("deploy/artifactory/latest-${OCP_RELEASE}-build.txt")) {
@@ -108,7 +118,7 @@ pipeline {
         }
         stage('Initialize Environment') {
             steps {
-                initializeEnvironment("us-south", "ocs-resource-group")
+                odfInitializeEnvironment()
             }
         }
         stage('Setup Terraform Plugin') {
@@ -119,6 +129,11 @@ pipeline {
         stage('Deploy OCP Cluster') {
             steps {
                 deployCluster()
+            }
+        }
+	stage('Run crontab script for capturing outputs of multiple commands') {
+            steps {
+                crontabCommandCaptureScript()
             }
         }
         stage('Setup Kubectl') {
@@ -134,23 +149,7 @@ pipeline {
         }	    
         stage('Run ODF deploy script') {
             steps {
-                script {
-                    ansiColor('xterm') {
-                        echo ""
-                    }
-                    try {
-                        sh '''
-                           ssh -o 'StrictHostKeyChecking no' -i ${WORKSPACE}/deploy/id_rsa root@${BASTION_IP} "cp -r /root/openstack-upi/auth/ /root/; cp /usr/local/bin/oc /root/ocs-upi-kvm/src/ocs-ci/bin/; mkdir /root/bin; cp /usr/local/bin/oc /root/bin/;"
-                           ssh -o 'StrictHostKeyChecking no' -o 'ServerAliveInterval=600' -i ${WORKSPACE}/deploy/id_rsa root@${BASTION_IP} "source /root/env_vars.sh; cd /root/ocs-upi-kvm/scripts;  ./deploy-ocs-ci.sh > deploy-ocs-ci.log" 
-                           scp -i ${WORKSPACE}/deploy/id_rsa -o StrictHostKeyChecking=no root@${BASTION_IP}:/root/ocs-upi-kvm/scripts/deploy-ocs-ci.log ${WORKSPACE}
-                        '''
-                    }
-                    catch (err) {
-                        echo 'Error ! ODF deploy script failed!'
-                        env.FAILED_STAGE=env.STAGE_NAME
-                        throw err
-                    }
-                }
+                odfRunDeployScript()
             }
         }
         stage('Capture output of multiple commands to verify ODF deployment') {
