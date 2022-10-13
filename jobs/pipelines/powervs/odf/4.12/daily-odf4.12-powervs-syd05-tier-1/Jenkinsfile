@@ -156,44 +156,5 @@ pipeline {
                 odfRunCommands()
             }
         }	    
-        stage('Run ODF tier tests') {
-            steps {
-                script {
-                    ansiColor('xterm') {
-                        echo ""
-                    }
-                    try {
-                        
-                    }
-                    catch (err) {
-                        echo 'Error ! Tier test script failed!'
-                        env.FAILED_STAGE=env.STAGE_NAME
-                        throw err
-                    }
-                 }
-             }
-        }
-        stage('Capture tier test summary and compress results') {
-            steps {
-                script {
-                    ansiColor('xterm') {
-                        echo ""
-                    }
-                    try {
-                        
-                    }
-                    catch (err) {
-                        echo 'Error ! Capturing tier test summary failed!'
-                        env.FAILED_STAGE=env.STAGE_NAME
-                        throw err
-                    }
-                }
-            }
-        }
     }
-    post {
-        always {
-
-        }
-    }	
 }
