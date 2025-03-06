@@ -12,7 +12,7 @@ cd ${WORKSPACE}/ocs-upi-kvm/scripts/ || { echo "Error: Directory not found"; exi
 # Loop over both test types (FILE and BLOCK)
 for PERF_TYPE in FILE BLOCK; do
     # Run FIO test and log output
-    ./run-fio.sh --tier ${PERF_TYPE} > performance_${PERF_TYPE}.log
+    ./run-fio.sh ${PERF_TYPE} > performance_${PERF_TYPE}.log
 
     # Extract the last numerical value (FILE_NUM) from the log
     FILE_NUM=$(awk '/Fio results directory:/ {val=$NF} END {print val}' performance_${PERF_TYPE}.log)
