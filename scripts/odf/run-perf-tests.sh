@@ -2,6 +2,8 @@
 ##
 ## This script runs Performance test in the remote bastion node
 ##
+#create cephtools pod
+ oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
 
 # Change to the correct directory once
 cd ${WORKSPACE}/ocs-upi-kvm/scripts/ || { echo "Error: Directory not found"; exit 1; }
