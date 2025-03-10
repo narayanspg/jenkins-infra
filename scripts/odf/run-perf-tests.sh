@@ -2,11 +2,9 @@
 ##
 ## This script runs Performance test in the remote bastion node
 ##
-#create cephtools pod
- oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
-scp -r -i ${WORKSPACE}/deploy/id_rsa -o 'StrictHostKeyChecking=no' root@${BASTION_IP}:/root/openstack-upi/auth/ ${WORKSPACE}/
-cp /usr/bin/oc ${WORKSPACE}/ocs-upi-kvm/src/ocs-ci/bin/
-mkdir ${WORKSPACE}/bin; cp /usr/bin/oc ${WORKSPACE}/bin/;
+#install envsubst
+apt-get install -y gettext
+ 
 # Change to the correct directory once
 cd ${WORKSPACE}/ocs-upi-kvm/scripts/ || { echo "Error: Directory not found"; exit 1; }
 
