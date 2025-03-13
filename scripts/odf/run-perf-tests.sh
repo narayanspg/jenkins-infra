@@ -12,8 +12,7 @@ cd ${WORKSPACE}/ocs-upi-kvm/scripts/ || { echo "Error: Directory not found"; exi
 . ${WORKSPACE}/env_vars.sh
 
 # Loop over both test types (file and block)
-#for PERF_TYPE in file block; do
-for PERF_TYPE in block; do
+for PERF_TYPE in file block; do
     # Run FIO test and log output
     ./run-fio.sh ${PERF_TYPE} > performance_${PERF_TYPE}.log 2>&1
 
