@@ -75,8 +75,8 @@ def call(String config, String noOfWorkers="2"){
             env.WORKER_MEMORY = "64"
             env.WORKER_VCPUS = "2"
 
-            env.DATA_VOLUME_SIZE = 1000
-            env.DATA_VOLUME_COUNT = 1
+            env.DATA_VOLUME_SIZE = 500
+            env.DATA_VOLUME_COUNT = 2
 
             if (env.PLATFORM == "powervm") {
                 env.WORKER_PROCESSORS = "1"
